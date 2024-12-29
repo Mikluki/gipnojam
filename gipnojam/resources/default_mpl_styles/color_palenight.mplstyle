@@ -1,0 +1,12 @@
+# === COLOR ===
+grid.color:           89ddff
+text.color:           c5d1dd
+xtick.color:          c5d1dd
+ytick.color:          c5d1dd
+axes.labelcolor:      c5d1dd
+axes.edgecolor:       1b1e2b
+axes.facecolor:       1b1e2b
+legend.facecolor:     1b1e2b
+legend.edgecolor:     1b1e2b
+figure.facecolor:     1b1e2b
+savefig.facecolor:    1b1e2b
