@@ -1,6 +1,7 @@
-import numpy as np
 import random
-from perlin_numpy import generate_perlin_noise_2d, generate_fractal_noise_2d
+
+import numpy as np
+from perlin_numpy import generate_fractal_noise_2d, generate_perlin_noise_2d
 
 
 def meters_to_idx(meters, length_per_pixel=3e-5):
@@ -20,7 +21,7 @@ def zero_cross(a):
     return np.where(np.diff(np.sign(a)))[0]
 
 
-def perlin_noise(shape, period, threshold=0.6, **kwargs):
+def perlin_noise(shape, period, threshold=0.6, **kwargs):  # pyright: ignore
     """
     The function generate_perlin_noise_2d generates a 2D texture of perlin noise. Its parameters are:
 
@@ -66,108 +67,153 @@ def fractal_noise(shape, period, octaves, lacunarity, threshold=0.6):
 #     return np.hstack([np.vstack([x2, x3]), np.vstack([x_ini, x1])])
 
 
-def expand_right(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    dim = (x_ini.shape[0], 1)
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.hstack([np.zeros(dim, dtype=int), x_ini[:, :-1]]).astype(int)
-    x_ini = (perlin & delta) | x_ini.astype(int)
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def expand_right(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    dim = (x.shape[0], 1)
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.hstack([np.zeros(dim, dtype=int), x[:, :-1]]).astype(int)
+    x = (noise & delta) | x.astype(int)
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def expand_left(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    dim = (x_ini.shape[0], 1)
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.hstack([x_ini[:, 1:], np.zeros(dim, dtype=int)]).astype(int)
-    x_ini = (perlin & delta) | x_ini.astype(int)
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def expand_left(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    dim = (x.shape[0], 1)
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.hstack([x[:, 1:], np.zeros(dim, dtype=int)]).astype(int)
+    x = (noise & delta) | x.astype(int)
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def expand_up(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    dim = (1, x_ini.shape[1])
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.vstack([x_ini[1:, :], np.zeros(dim, dtype=int)]).astype(int)
-    x_ini = (perlin & delta) | x_ini.astype(int)
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def expand_up(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    dim = (1, x.shape[1])
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.vstack([x[1:, :], np.zeros(dim, dtype=int)]).astype(int)
+    x = (noise & delta) | x.astype(int)
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def expand_down(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    dim = (1, x_ini.shape[1])
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.vstack([np.zeros(dim, dtype=int), x_ini[:-1, :]]).astype(int)
-    x_ini = (perlin & delta) | x_ini.astype(int)
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def expand_down(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    dim = (1, x.shape[1])
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.vstack([np.zeros(dim, dtype=int), x[:-1, :]]).astype(int)
+    x = (noise & delta) | x.astype(int)
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def shrink_down(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    x_ini = 1 - x_ini
-    dim = (1, x_ini.shape[1])
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.vstack([x_ini[1:, :], np.ones(dim, dtype=int)]).astype(int)
-    x_ini = 1 - ((perlin & delta) | x_ini.astype(int))
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def shrink_down(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = 1 - x
+    dim = (1, x.shape[1])
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.vstack([x[1:, :], np.ones(dim, dtype=int)]).astype(int)
+    x = 1 - ((noise & delta) | x.astype(int))
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def shrink_up(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    x_ini = 1 - x_ini
-    dim = (1, x_ini.shape[1])
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.vstack([np.ones(dim, dtype=int), x_ini[:-1, :]]).astype(int)
-    x_ini = 1 - ((perlin & delta) | x_ini.astype(int))
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def shrink_up(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = 1 - x
+    dim = (1, x.shape[1])
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.vstack([np.ones(dim, dtype=int), x[:-1, :]]).astype(int)
+    x = 1 - ((noise & delta) | x.astype(int))
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def shrink_left(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    x_ini = 1 - x_ini
-    dim = (x_ini.shape[0], 1)
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.hstack([np.zeros(dim, dtype=int), x_ini[:, :-1]]).astype(int)
-    x_ini = 1 - ((perlin & delta) | x_ini.astype(int))
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def shrink_left(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = 1 - x
+    dim = (x.shape[0], 1)
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.hstack([np.zeros(dim, dtype=int), x[:, :-1]]).astype(int)
+    x = 1 - ((noise & delta) | x.astype(int))
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def shrink_right(x_ini, noise_obj, mask_cut=False, mask_metal=False):
-    x_ini = 1 - x_ini
-    dim = (x_ini.shape[0], 1)
-    perlin = noise_obj.generate_noise(x_ini.shape).astype(int)
-    delta = np.hstack([x_ini[:, 1:], np.zeros(dim, dtype=int)]).astype(int)
-    x_ini = 1 - ((perlin & delta) | x_ini.astype(int))
-    if mask_cut is not False:
-        x_ini = apply_mask_cut(x_ini, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
-    return x_ini
+def shrink_right(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = 1 - x
+    dim = (x.shape[0], 1)
+    noise = noise_obj.get_noise(x.shape).astype(int)
+    delta = np.hstack([x[:, 1:], np.zeros(dim, dtype=int)]).astype(int)
+    x = 1 - ((noise & delta) | x.astype(int))
+    if mask_cut is not None:
+        x = apply_mask_cut(x, mask_cut=mask_cut)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
+    return x
 
 
-def add_one(x_ini, noise_obj=None, mask_cut=False, mask_metal=False):
-    x = x_ini.copy()
+def add_one(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = x.copy()
     i_row, i_clmn = random.choice(np.argwhere(x == 0))
 
     def form1(x):
@@ -188,15 +234,20 @@ def add_one(x_ini, noise_obj=None, mask_cut=False, mask_metal=False):
 
     random.choice([form1, form2, form3, form4])(x)
 
-    if mask_cut is not False:
+    if mask_cut is not None:
         x = apply_mask_cut(x, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
     return x
 
 
-def add_zero(x_ini, noise_obj=None, mask_cut=False, mask_metal=False):
-    x = x_ini.copy()
+def add_zero(
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+) -> np.ndarray:
+    x = x.copy()
     i_row, i_clmn = random.choice(np.argwhere(x == 1))
 
     def form1(x):
@@ -217,53 +268,61 @@ def add_zero(x_ini, noise_obj=None, mask_cut=False, mask_metal=False):
 
     random.choice([form1, form2, form3, form4])(x)
 
-    if mask_cut is not False:
+    if mask_cut is not None:
         x = apply_mask_cut(x, mask_cut=mask_cut)
-    if mask_metal is not False:
-        x_ini = x_ini.astype(int) | mask_metal.astype(int)
+    if mask_metal is not None:
+        x = x.astype(int) | mask_metal.astype(int)  # pyright: ignore
     return x
 
 
 def recursive_add_one(
-    x_ini, noise_obj=None, mask_cut=False, mask_metal=False, times=1
-):
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+    times=1,
+) -> np.ndarray:
     if times > 0:
-        x_ini = add_one(
-            x_ini,
+        x = add_one(
+            x,
             noise_obj=noise_obj,
             mask_cut=mask_cut,
             mask_metal=mask_metal,
         )
         return recursive_add_one(
-            x_ini,
+            x,
             noise_obj=noise_obj,
             times=times - 1,
             mask_cut=mask_cut,
             mask_metal=mask_metal,
         )
     else:
-        return x_ini
+        return x
 
 
 def recursive_add_zero(
-    x_ini, noise_obj=None, mask_cut=False, mask_metal=False, times=1
-):
+    x: np.ndarray,
+    noise_obj,
+    mask_cut: None | np.ndarray = None,
+    mask_metal: None | np.ndarray = None,
+    times=1,
+) -> np.ndarray:
     if times > 0:
-        x_ini = add_zero(
-            x_ini,
+        x = add_zero(
+            x,
             noise_obj=noise_obj,
             mask_cut=mask_cut,
             mask_metal=mask_metal,
         )
         return recursive_add_zero(
-            x_ini,
+            x,
             noise_obj=noise_obj,
             times=times - 1,
             mask_cut=mask_cut,
             mask_metal=mask_metal,
         )
     else:
-        return x_ini
+        return x
 
 
 def recursive_(x, noise_obj, func, times=2):
@@ -281,12 +340,14 @@ def apply_mask_cut(x, mask_cut):
 
 
 class Noise:
-    def __init__(self,
-                 perlin_period,
-                 noise_type="fractal",
-                 octaves=3,
-                 lacunarity=2,
-                 threshold=0.6):
+    def __init__(
+        self,
+        perlin_period,
+        noise_type="fractal",
+        octaves=3,
+        lacunarity=2,
+        threshold=0.6,
+    ):
         self.perlin_period = perlin_period
 
         self.noise_type = noise_type
@@ -294,15 +355,19 @@ class Noise:
         self.octaves = octaves
         self.lacunarity = lacunarity
 
-        self.generate_noise = self.init_noise(noise_type)
+        self.get_noise = self.init_noise_function(noise_type)
 
-
-    def init_noise(self, noise_type):
+    def init_noise_function(self, noise_type):
 
         if noise_type == "fractal":
-            def fractal_noise(shape, period=self.perlin_period,
-                              octaves=self.octaves, lacunarity=self.lacunarity,
-                              threshold=self.threshold):
+
+            def fractal_noise(
+                shape,
+                period=self.perlin_period,
+                octaves=self.octaves,
+                lacunarity=self.lacunarity,
+                threshold=self.threshold,
+            ):
                 """
                 The function generate_fractal_noise_2d combines several octaves of 2D perlin noise to make 2D fractal noise. Its parameters are:
 
@@ -322,11 +387,14 @@ class Noise:
                 # Round values based on the threshold
                 arr = np.where(arr >= threshold, 1, 0)
                 return arr
+
             return fractal_noise
 
         elif noise_type == "perlin":
-            def perlin_noise(shape, period=self.perlin_period,
-                             threshold=self.threshold, **kwargs):
+
+            def perlin_noise(
+                shape, period=self.perlin_period, threshold=self.threshold
+            ):
                 """
                 The function generate_perlin_noise_2d generates a 2D texture of perlin noise. Its parameters are:
 
@@ -341,6 +409,7 @@ class Noise:
                 # Round values based on the threshold
                 arr = np.where(arr >= threshold, 1, 0)
                 return arr
+
             return perlin_noise
         else:
             assert noise_type == "perlin"
